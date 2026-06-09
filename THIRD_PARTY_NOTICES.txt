@@ -1,0 +1,117 @@
+Third-Party Notices for Bowtie 2 2.5.5 Windows UCRT64 Build
+===========================================================
+
+This file summarizes third-party components included in, or used to build, the
+Windows release ZIP for this repository.
+
+This is an informational notice file, not legal advice. Each third-party
+component remains under its own license terms.
+
+
+Packaged runtime files
+----------------------
+
+The release ZIP includes Bowtie 2 executables and Windows wrapper scripts:
+
+  bowtie2-align-s.exe
+  bowtie2-align-l.exe
+  bowtie2-build-s.exe
+  bowtie2-build-l.exe
+  bowtie2-inspect-s.exe
+  bowtie2-inspect-l.exe
+  bowtie2.cmd
+  bowtie2-build.cmd
+  bowtie2-inspect.cmd
+  bowtie2.ps1
+  bowtie2-build.ps1
+  bowtie2-inspect.ps1
+
+The tested UCRT64 build was linked with:
+
+  -static-libgcc -static-libstdc++ -static
+
+No MSYS2 runtime DLLs are packaged with this release. The executables import
+Windows system/UCRT API-set DLLs such as KERNEL32.dll and
+api-ms-win-crt-*.dll.
+
+The `LICENSES/` directory contains license metadata for the components below:
+
+  LICENSES/DLL_LICENSES.md
+  LICENSES/bowtie2/LICENSE
+  LICENSES/zlib/LICENSE
+  LICENSES/gcc-libs/
+
+
+Bowtie 2
+--------
+
+Upstream project:
+  https://github.com/BenLangmead/bowtie2
+
+License:
+  GNU General Public License v3
+
+The upstream Bowtie 2 license text is included in:
+
+  LICENSE
+  LICENSE.md in the release archive
+  LICENSES/bowtie2/LICENSE
+
+
+zlib
+----
+
+MSYS2 package:
+  mingw-w64-ucrt-x86_64-zlib
+
+Version checked:
+  1.3.2-2
+
+Project:
+  https://www.zlib.net/
+
+License:
+  zlib license
+
+Bowtie 2 links against zlib for gzip support. In the tested UCRT64 build, zlib
+is not packaged as a separate DLL.
+
+The zlib license text is included in:
+
+  LICENSES/zlib/LICENSE
+
+
+GCC runtime libraries
+---------------------
+
+MSYS2 package:
+  mingw-w64-ucrt-x86_64-gcc-libs
+
+Version checked:
+  16.1.0-2
+
+Project:
+  https://gcc.gnu.org/
+
+License:
+  GPL-3.0-or-later WITH GCC-exception-3.1 and LGPL-2.1-or-later components
+
+The tested build links GCC runtime support statically through
+`-static-libgcc -static-libstdc++ -static`. GCC license and runtime-exception
+texts from MSYS2 are included in:
+
+  LICENSES/gcc-libs/COPYING.RUNTIME
+  LICENSES/gcc-libs/COPYING3
+  LICENSES/gcc-libs/COPYING.LIB
+  LICENSES/gcc-libs/README
+
+
+MSYS2 UCRT64
+------------
+
+The executables were built with the MSYS2 UCRT64 toolchain.
+
+MSYS2 project:
+  https://www.msys2.org/
+
+No MSYS2 DLLs are included in the release ZIP for this build.

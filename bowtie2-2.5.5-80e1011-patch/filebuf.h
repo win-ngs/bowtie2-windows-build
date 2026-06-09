@@ -33,6 +33,11 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <zlib.h>
+// Windows output streams must be forced to binary mode to keep SAM newlines LF-only.
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 #ifdef WITH_ZSTD
 #include "zstd_decompress.h"
 #endif
@@ -50,6 +55,23 @@ static inline bool isnewline(int c) {
  */
 static inline bool isspace_notnl(int c) {
 	return isspace(c) && !isnewline(c);
+}
+
+// Use binary output on Windows so the C runtime does not translate '\n' to "\r\n".
+static inline const char *outFileMode(bool binary) {
+#ifdef _WIN32
+	(void)binary;
+	return "wb";
+#else
+	return binary ? "wb" : "w";
+#endif
+}
+
+// The default SAM destination is stdout, which is text mode on native Windows.
+static inline void setStdoutBinaryMode() {
+#ifdef _WIN32
+	setmode(fileno(stdout), O_BINARY);
+#endif
 }
 
 /**
@@ -636,7 +658,8 @@ public:
 		buf1_(new char[BUF_SZ]), buf2_(new char[BUF_SZ]), cap1_(BUF_SZ), cap2_(BUF_SZ),
 		buf_(buf1_), cap_(cap1_)
 	{
-		out_ = fopen(out.c_str(), binary ? "wb" : "w");
+		// Route all file output through the Windows LF-only mode selection.
+		out_ = fopen(out.c_str(), outFileMode(binary));
 		if(out_ == NULL) {
 			std::cerr << "Error: Could not open alignment output file " << out.c_str() << std::endl;
 			throw 1;
@@ -655,7 +678,8 @@ public:
 		buf_(buf1_), cap_(cap1_)
 	{
 		assert(out != NULL);
-		out_ = fopen(out, binary ? "wb" : "w");
+		// Route all file output through the Windows LF-only mode selection.
+		out_ = fopen(out, outFileMode(binary));
 		if(out_ == NULL) {
 			std::cerr << "Error: Could not open alignment output file " << out << std::endl;
 			throw 1;
@@ -669,7 +693,10 @@ public:
 		name_("cout"), out_(stdout), cur_(0), closed_(false),
 		asyncData_(out_), asynct_(writeAsync, &asyncData_),
 		buf1_(new char[BUF_SZ]), buf2_(new char[BUF_SZ]), cap1_(BUF_SZ), cap2_(BUF_SZ),
-		buf_(buf1_), cap_(cap1_) {}
+		buf_(buf1_), cap_(cap1_) {
+		// Keep default stdout SAM output byte-identical to file output on Windows.
+		setStdoutBinaryMode();
+	}
 	
 	/**
 	 * Close buffer when object is destroyed.
@@ -687,7 +714,8 @@ public:
 	 */
 	void setFile(const char *out, bool binary = false) {
 		assert(out != NULL);
-		out_ = fopen(out, binary ? "wb" : "w");
+		// Route all file output through the Windows LF-only mode selection.
+		out_ = fopen(out, outFileMode(binary));
 		if(out_ == NULL) {
 			std::cerr << "Error: Could not open alignment output file " << out << std::endl;
 			throw 1;
