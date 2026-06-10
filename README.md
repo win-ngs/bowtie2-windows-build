@@ -9,12 +9,12 @@ Official Bowtie 2 repository: https://github.com/BenLangmead/bowtie2
 
 This build is based on upstream Bowtie 2 2.5.5.
 
-This Windows executables were built using 
+These Windows executables were built using 
 [MSYS2 UCRT64](https://www.msys2.org/docs/environments/).
 
 ## Downloading Bowtie 2 for Windows
 
-Prebuilt Windows binaries are intended to be published on the
+Prebuilt Windows binaries are published on the
 [Releases](https://github.com/win-ngs/bowtie2-windows-build/releases) page
 of this repository.
 
@@ -47,7 +47,7 @@ THIRD_PARTY_NOTICES.txt
 LICENSES/
 ```
 
-The wrapper/laucher scripts were re-written as PowerShell scripts (the included ".ps1" and ".cmd" files), obviating the need for Perl and Python to execute Bowtie 2.
+The wrapper/launcher scripts were re-written as PowerShell scripts (the included ".ps1" and ".cmd" files), obviating the need for Perl and Python to execute Bowtie 2.
 
 ## Running Bowtie 2 from PowerShell
 
@@ -105,7 +105,7 @@ https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
 Use the `.cmd` commands for normal Windows use. They are native Windows wrapper
 commands and do not require Perl or Python.
 
-The PowerShell `bowtie2.cmd` wrapper intentionally does not implement upstream
+The PowerShell `bowtie2.ps1` wrapper intentionally does not implement upstream
 Perl-wrapper paths that require shell pipelines or external helper tools:
 
 - `--un*`
