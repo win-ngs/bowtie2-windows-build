@@ -1,5 +1,3 @@
-# Bowtie 2 for Windows
-
 ## Bowtie 2 for Windows: Community-built Windows binaries
 
 This repository provides a Bowtie 2 build that runs natively on Windows.
@@ -11,15 +9,8 @@ Official Bowtie 2 repository: https://github.com/BenLangmead/bowtie2
 
 This build is based on upstream Bowtie 2 2.5.5.
 
-This repository provides Windows executables for:
-
-- `bowtie2-align-s.exe` and `bowtie2-align-l.exe`
-- `bowtie2-build-s.exe` and `bowtie2-build-l.exe`
-- `bowtie2-inspect-s.exe` and `bowtie2-inspect-l.exe`
-- `bowtie2.cmd`, `bowtie2-build.cmd`, and `bowtie2-inspect.cmd`
-- `bowtie2.ps1`, `bowtie2-build.ps1`, and `bowtie2-inspect.ps1`
-
-built using [MSYS2 UCRT64](https://www.msys2.org/docs/environments/).
+This Windows executables were built using 
+[MSYS2 UCRT64](https://www.msys2.org/docs/environments/).
 
 ## Downloading Bowtie 2 for Windows
 
@@ -56,39 +47,38 @@ THIRD_PARTY_NOTICES.txt
 LICENSES/
 ```
 
-The `.cmd` commands use Windows PowerShell 5.1, which is included with Windows.
-PowerShell 7, Perl, and Python are not required.
+The wrapper/laucher scripts were re-written as PowerShell scripts (the included ".ps1" and ".cmd" files), obviating the need for Perl and Python to execute Bowtie 2.
 
 ## Running Bowtie 2 from PowerShell
 
 Bowtie 2 is a command-line program. Open PowerShell, move into the extracted
-folder, and run the `.cmd` commands.
+folder, and run the commands as follows.
 
 Check versions:
 
 ```powershell
-.\bowtie2-build.cmd --version
-.\bowtie2.cmd --version
-.\bowtie2-inspect.cmd --version
+.\bowtie2-build --version
+.\bowtie2 --version
+.\bowtie2-inspect --version
 ```
 
 Build an index, inspect it, and align reads:
 
 ```powershell
 # Build a small index.
-.\bowtie2-build.cmd .\reference.fa .\index\ref
+.\bowtie2-build .\reference.fa .\index\ref
 
 # Inspect the index.
-.\bowtie2-inspect.cmd .\index\ref
+.\bowtie2-inspect .\index\ref
 
 # Align single-end reads and write SAM output.
-.\bowtie2.cmd -x .\index\ref -U .\reads.fastq -S .\aligned.sam
+.\bowtie2 -x .\index\ref -U .\reads.fastq -S .\aligned.sam
 ```
 
 Write SAM output to stdout by omitting `-S`:
 
 ```powershell
-.\bowtie2.cmd -x .\index\ref -U .\reads.fastq
+.\bowtie2 -x .\index\ref -U .\reads.fastq
 ```
 
 Do not use `-S -`. Bowtie 2 treats it as a literal output filename named `-`.
@@ -96,86 +86,24 @@ Do not use `-S -`. Bowtie 2 treats it as a literal output filename named `-`.
 For large indexes, pass `--large-index`:
 
 ```powershell
-.\bowtie2-build.cmd --large-index .\large_reference.fa .\index\large_ref
-.\bowtie2.cmd --large-index -x .\index\large_ref -U .\reads.fastq -S .\aligned.sam
-.\bowtie2-inspect.cmd --large-index .\index\large_ref
+.\bowtie2-build --large-index .\large_reference.fa .\index\large_ref
+.\bowtie2 --large-index -x .\index\large_ref -U .\reads.fastq -S .\aligned.sam
+.\bowtie2-inspect --large-index .\index\large_ref
 ```
 
 If `--large-index` is not specified, the wrappers automatically use the large
 executable when a large index exists and the corresponding small index does not.
 
-## Windows PowerShell wrappers
-
-This Windows build does not use the upstream wrapper scripts directly for normal
-Windows use. The upstream `bowtie2` wrapper is a Perl script, and the upstream
-`bowtie2-build` and `bowtie2-inspect` launchers are Python scripts. The Perl
-wrapper also contains Unix-oriented behavior such as shell pipelines, `mkfifo`,
-`fork`, and PATH parsing with `:`.
-
-This repository therefore provides native Windows wrapper scripts:
-
-```text
-bowtie2.ps1
-bowtie2-build.ps1
-bowtie2-inspect.ps1
-```
-
-These PowerShell scripts choose the correct compiled executable and pass the
-arguments to it:
-
-```text
-bowtie2.ps1         -> bowtie2-align-s.exe or bowtie2-align-l.exe
-bowtie2-build.ps1   -> bowtie2-build-s.exe or bowtie2-build-l.exe
-bowtie2-inspect.ps1 -> bowtie2-inspect-s.exe or bowtie2-inspect-l.exe
-```
-
-They are written for Windows PowerShell 5.1, which is included with Windows.
-They do not require PowerShell 7 (`pwsh.exe`). The scripts also avoid shell
-command strings and forward `bowtie2` stdout as a byte stream so SAM output
-keeps LF line endings.
-
-For convenience, the release also includes `.cmd` launchers:
-
-```text
-bowtie2.cmd
-bowtie2-build.cmd
-bowtie2-inspect.cmd
-```
-
-Most users should run the `.cmd` commands. The `.cmd` files call the matching
-`.ps1` script through `powershell.exe`.
-
-## Working with input files
-
-Ordinary FASTA, FASTQ, and SAM output workflows use the same Bowtie 2 options as
-upstream Bowtie 2. For detailed usage and option descriptions, refer to the
+For detailed usage and option descriptions, refer to the
 official Bowtie 2 documentation:
 
 https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
 
-This build links zlib, so ordinary Bowtie 2 gzip support is available through
-the compiled executables. Zstandard support is not enabled in this build; see
-[zstd support note](#zstd-support-note).
-
-Input files with CRLF line endings are supported. SAM output from this Windows
-build is fixed to LF line endings.
 
 ## Limitations
 
 Use the `.cmd` commands for normal Windows use. They are native Windows wrapper
 commands and do not require Perl or Python.
-
-Do not use the upstream-generated `.bat` wrappers in the Windows distribution:
-
-```text
-bowtie2.bat         -> perl bowtie2
-bowtie2-build.bat   -> python3 bowtie2-build
-bowtie2-inspect.bat -> python3 bowtie2-inspect
-```
-
-Those `.bat` files require `perl` or `python3` on `PATH`, and the upstream Perl
-`bowtie2` wrapper contains POSIX assumptions that are not suitable for normal
-PowerShell sessions.
 
 The PowerShell `bowtie2.cmd` wrapper intentionally does not implement upstream
 Perl-wrapper paths that require shell pipelines or external helper tools:
@@ -186,6 +114,10 @@ Perl-wrapper paths that require shell pipelines or external helper tools:
 
 Use direct SAM output options, or run additional filtering/conversion tools
 outside Bowtie 2.
+
+Zstandard support is not enabled in this build; see
+[zstd support note](#zstd-support-note). GZIP is supported.
+
 
 ## Validation performed
 
@@ -228,31 +160,7 @@ The distribution layout was also tested by placing the `.cmd`, `.ps1`, and
 spaces, and `bowtie2-build.cmd`, `bowtie2-inspect.cmd`, and `bowtie2.cmd` all
 completed successfully.
 
-## Runtime DLLs
 
-The recommended build command passes:
-
-```text
--static-libgcc -static-libstdc++ -static
-```
-
-That avoids depending on separate GCC runtime DLLs such as `libgcc_s` or
-`libstdc++` for the produced executables.
-
-Check imported DLLs with:
-
-```bash
-objdump -p bowtie2-align-s.exe | grep "DLL Name"
-```
-
-The tested build imports Windows UCRT API-set DLLs, for example:
-
-```text
-KERNEL32.dll
-api-ms-win-crt-runtime-l1-1-0.dll
-api-ms-win-crt-stdio-l1-1-0.dll
-api-ms-win-crt-string-l1-1-0.dll
-```
 
 ## Build from source
 
@@ -363,6 +271,47 @@ warning: unused variable 'riter'
 
 These warnings did not prevent the tested build from completing.
 
+## Windows PowerShell wrappers
+
+This Windows build does not use the upstream wrapper scripts directly for normal
+Windows use. The upstream `bowtie2` wrapper is a Perl script, and the upstream
+`bowtie2-build` and `bowtie2-inspect` launchers are Python scripts. The Perl
+wrapper also contains Unix-oriented behavior such as shell pipelines, `mkfifo`,
+`fork`, and PATH parsing with `:`.
+
+This repository therefore provides native Windows wrapper scripts:
+
+```text
+bowtie2.ps1
+bowtie2-build.ps1
+bowtie2-inspect.ps1
+```
+
+These PowerShell scripts choose the correct compiled executable and pass the
+arguments to it:
+
+```text
+bowtie2.ps1         -> bowtie2-align-s.exe or bowtie2-align-l.exe
+bowtie2-build.ps1   -> bowtie2-build-s.exe or bowtie2-build-l.exe
+bowtie2-inspect.ps1 -> bowtie2-inspect-s.exe or bowtie2-inspect-l.exe
+```
+
+They are written for Windows PowerShell 5.1, which is included with Windows.
+They do not require PowerShell 7 (`pwsh.exe`). The scripts also avoid shell
+command strings and forward `bowtie2` stdout as a byte stream so SAM output
+keeps LF line endings.
+
+For convenience, the release also includes `.cmd` launchers:
+
+```text
+bowtie2.cmd
+bowtie2-build.cmd
+bowtie2-inspect.cmd
+```
+
+Most users should run the `.cmd` commands. The `.cmd` files call the matching
+`.ps1` script through `powershell.exe`.
+
 ## Developer notes for the Windows wrapper files
 
 The `.cmd` files are small launchers. For example, `bowtie2.cmd` runs:
@@ -457,64 +406,6 @@ make clean
 
 This removes Bowtie 2 executables, generated `.bat` files, package zip files,
 and the Makefile `.tmp` directory.
-
-## Troubleshooting
-
-### `g++` is not found
-
-Confirm that the terminal is **MSYS2 UCRT64**, not plain MSYS2 MSYS:
-
-```bash
-echo "$MSYSTEM"
-command -v g++
-```
-
-Install the UCRT64 compiler package:
-
-```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-toolchain
-```
-
-### The build uses cross-compiler names that do not exist
-
-If the Makefile tries to use tools such as
-`x86_64-w64-mingw32-g++-posix`, rerun the build with explicit UCRT64 tools:
-
-```bash
-make -j4 all MINGW=1 WINDOWS=1 CXX=g++ CC=gcc AR=ar RC=windres LD=ld STRIP=strip
-```
-
-### Output files do not have `.exe` suffixes
-
-This usually means the Makefile did not enter the Windows branch. Build with:
-
-```bash
-MINGW=1 WINDOWS=1
-```
-
-### `bowtie2.bat` fails
-
-`bowtie2.bat` calls `perl`, while `bowtie2-build.bat` and
-`bowtie2-inspect.bat` call `python3`.
-
-Use the `.cmd` wrappers instead:
-
-```powershell
-.\bowtie2.cmd --version
-.\bowtie2-build.cmd --version
-.\bowtie2-inspect.cmd --version
-```
-
-### Alignment fails after enabling zstd
-
-Rebuild without `WITH_ZSTD=1`:
-
-```bash
-make -B -j4 all MINGW=1 WINDOWS=1 CXX=g++ CC=gcc AR=ar RC=windres LD=ld STRIP=strip
-```
-
-Then confirm that `./bowtie2-align-s.exe --version` no longer shows
-`-DWITH_ZSTD` in the `Options:` line.
 
 ## License
 
