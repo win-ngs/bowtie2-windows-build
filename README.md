@@ -24,30 +24,33 @@ Portable ZIP package:
 bowtie2-2.5.5-windows-ucrt64.zip
 ```
 
-After extracting the portable ZIP archive, keep the files in the same folder.
-The folder name does not matter. The important point is that the `.cmd`,
-`.ps1`, and `.exe` files stay together:
+After extracting the portable ZIP archive, keep the extracted folder structure.
+The folder name does not matter. The important point is that the root `.cmd`
+files, root `.exe` files, and the `scripts/` folder stay together:
 
 ```text
 bowtie2.cmd
 bowtie2-build.cmd
 bowtie2-inspect.cmd
-bowtie2.ps1
-bowtie2-build.ps1
-bowtie2-inspect.ps1
 bowtie2-align-s.exe
 bowtie2-align-l.exe
 bowtie2-build-s.exe
 bowtie2-build-l.exe
 bowtie2-inspect-s.exe
 bowtie2-inspect-l.exe
+scripts/
+  bowtie2.ps1
+  bowtie2-build.ps1
+  bowtie2-inspect.ps1
 README.md
 LICENSE.md
 THIRD_PARTY_NOTICES.txt
 LICENSES/
 ```
 
-The wrapper/launcher scripts were re-written as PowerShell scripts (the included ".ps1" and ".cmd" files), obviating the need for Perl and Python to execute Bowtie 2.
+The wrapper/launcher files were re-written as root `.cmd` launchers and
+PowerShell scripts under `scripts/`, obviating the need for Perl and Python to
+execute Bowtie 2.
 
 ## Running Bowtie 2 from PowerShell
 
@@ -105,7 +108,7 @@ https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
 Use the `.cmd` commands for normal Windows use. They are native Windows wrapper
 commands and do not require Perl or Python.
 
-The PowerShell `bowtie2.ps1` wrapper intentionally does not implement upstream
+The `scripts\bowtie2.ps1` wrapper intentionally does not implement upstream
 Perl-wrapper paths that require shell pipelines or external helper tools:
 
 - `--un*`
@@ -155,10 +158,10 @@ stdout SAM     -> LF=8, CRLF=0, BareLF=8
 CRLF FASTQ     -> alignment succeeded
 ```
 
-The distribution layout was also tested by placing the `.cmd`, `.ps1`, and
-`.exe` files in the same temporary folder. The folder path and index path used
-spaces, and `bowtie2-build.cmd`, `bowtie2-inspect.cmd`, and `bowtie2.cmd` all
-completed successfully.
+The distribution layout was also tested with root `.cmd` and `.exe` files plus
+PowerShell scripts under `scripts/`. The folder path and index path used spaces,
+and `bowtie2-build.cmd`, `bowtie2-inspect.cmd`, and `bowtie2.cmd` all completed
+successfully.
 
 
 
@@ -282,18 +285,18 @@ wrapper also contains Unix-oriented behavior such as shell pipelines, `mkfifo`,
 This repository therefore provides native Windows wrapper scripts:
 
 ```text
-bowtie2.ps1
-bowtie2-build.ps1
-bowtie2-inspect.ps1
+scripts\bowtie2.ps1
+scripts\bowtie2-build.ps1
+scripts\bowtie2-inspect.ps1
 ```
 
 These PowerShell scripts choose the correct compiled executable and pass the
 arguments to it:
 
 ```text
-bowtie2.ps1         -> bowtie2-align-s.exe or bowtie2-align-l.exe
-bowtie2-build.ps1   -> bowtie2-build-s.exe or bowtie2-build-l.exe
-bowtie2-inspect.ps1 -> bowtie2-inspect-s.exe or bowtie2-inspect-l.exe
+scripts\bowtie2.ps1         -> bowtie2-align-s.exe or bowtie2-align-l.exe
+scripts\bowtie2-build.ps1   -> bowtie2-build-s.exe or bowtie2-build-l.exe
+scripts\bowtie2-inspect.ps1 -> bowtie2-inspect-s.exe or bowtie2-inspect-l.exe
 ```
 
 They are written for Windows PowerShell 5.1, which is included with Windows.
@@ -309,30 +312,31 @@ bowtie2-build.cmd
 bowtie2-inspect.cmd
 ```
 
-Most users should run the `.cmd` commands. The `.cmd` files call the matching
-`.ps1` script through `powershell.exe`.
+Most users should run the root `.cmd` commands. The `.cmd` files call the
+matching `.ps1` script under `scripts/` through `powershell.exe`. Keeping the
+`.ps1` files out of the root directory also avoids ambiguity when users type
+`bowtie2` in PowerShell.
 
 ## Developer notes for the Windows wrapper files
 
 The `.cmd` files are small launchers. For example, `bowtie2.cmd` runs:
 
 ```cmd
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0bowtie2.ps1" %*
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\bowtie2.ps1" %*
 ```
 
 The `.ps1` files then start the matching native executable:
 
 ```text
-bowtie2.ps1         -> bowtie2-align-s.exe or bowtie2-align-l.exe
-bowtie2-build.ps1   -> bowtie2-build-s.exe or bowtie2-build-l.exe
-bowtie2-inspect.ps1 -> bowtie2-inspect-s.exe or bowtie2-inspect-l.exe
+scripts\bowtie2.ps1         -> bowtie2-align-s.exe or bowtie2-align-l.exe
+scripts\bowtie2-build.ps1   -> bowtie2-build-s.exe or bowtie2-build-l.exe
+scripts\bowtie2-inspect.ps1 -> bowtie2-inspect-s.exe or bowtie2-inspect-l.exe
 ```
 
-The `.ps1` wrappers first look for the required `.exe` in the same directory as
-the wrapper. This supports the release archive layout where `.cmd`, `.ps1`, and
-`.exe` files are kept together. If the `.exe` is not present in the same
-directory, the wrappers fall back to `bowtie2-2.5.5-80e1011-patch/` for this
-development workspace.
+The `.ps1` wrappers look for the required `.exe` only in the parent directory
+of `scripts/`. This supports the release archive layout where root `.cmd` files
+and root `.exe` files sit next to the `scripts/` directory. If the `.exe` is not
+present there, the wrapper stops with an error.
 
 The `.ps1` wrappers use `.NET` `ProcessStartInfo` and explicit Windows argument
 quoting. They do not use `system()`, `mkfifo`, `fork`, shell pipelines, or
@@ -356,13 +360,14 @@ Paths below are relative to the patched source directory
 | `filebuf.h` | Added `outFileMode(bool binary)`, which returns `"wb"` on Windows and preserves the previous `binary ? "wb" : "w"` behavior on non-Windows platforms | Prevents the Windows C runtime from translating LF to CRLF for `OutFileBuf` file outputs while leaving POSIX behavior unchanged |
 | `filebuf.h` | Added `setStdoutBinaryMode()` and calls it from the default `OutFileBuf()` constructor | Keeps the default SAM output path, stdout, LF-only on native Windows |
 | `filebuf.h` | Changed all `OutFileBuf` file-opening paths to call `outFileMode(binary)` instead of directly choosing `"w"` for text mode | Routes `-S <sam>` file output and other `OutFileBuf` file outputs through the same Windows LF-only handling |
-| `../bowtie2.ps1` | Added a Windows PowerShell 5.1-compatible wrapper for `bowtie2-align-s.exe` / `bowtie2-align-l.exe` using `ProcessStartInfo`, explicit Windows argument quoting, byte-stream stdout forwarding, and same-folder-first executable lookup | Replaces the upstream Perl wrapper for normal Windows use without `system()`, shell pipelines, `mkfifo`, `fork`, or colon-based PATH parsing; also supports release ZIPs where exe/ps1/cmd files are in one folder |
-| `../bowtie2-build.ps1` | Added a Windows PowerShell 5.1-compatible wrapper for `bowtie2-build-s.exe` / `bowtie2-build-l.exe` with small/large index selection, multi-FASTA argument normalization, and same-folder-first executable lookup | Replaces the upstream Python launcher so `python3` is not required for Windows builds; also supports release ZIPs where exe/ps1/cmd files are in one folder |
-| `../bowtie2-inspect.ps1` | Added a Windows PowerShell 5.1-compatible wrapper for `bowtie2-inspect-s.exe` / `bowtie2-inspect-l.exe` with automatic large-index selection and same-folder-first executable lookup | Replaces the upstream Python launcher so `python3` is not required for Windows inspection; also supports release ZIPs where exe/ps1/cmd files are in one folder |
-| `../bowtie2.cmd`, `../bowtie2-build.cmd`, `../bowtie2-inspect.cmd` | Added thin `cmd.exe` launchers that call `powershell.exe -NoProfile -ExecutionPolicy Bypass -File` for the matching `.ps1` wrapper | Lets users run `bowtie2.cmd`-style commands on a stock Windows installation with Windows PowerShell 5.1 |
+| `Makefile` | Removed `-g3` from `RELEASE_FLAGS`; added `WINNGS_BUILD_HOST` and `WINNGS_BUILD_TIME`; changed `BUILD_HOST` and `BUILD_TIME` to use those WinNGS values | Keeps release `--version` output free of the local PC name, locale-dependent date text, and debug compiler option text |
+| `../scripts/bowtie2.ps1` | Added a Windows PowerShell 5.1-compatible wrapper for `bowtie2-align-s.exe` / `bowtie2-align-l.exe` using `ProcessStartInfo`, explicit Windows argument quoting, byte-stream stdout forwarding, and parent-directory-only executable lookup | Replaces the upstream Perl wrapper for normal Windows use without `system()`, shell pipelines, `mkfifo`, `fork`, or colon-based PATH parsing; also supports release ZIPs where root cmd/exe files sit next to `scripts/` |
+| `../scripts/bowtie2-build.ps1` | Added a Windows PowerShell 5.1-compatible wrapper for `bowtie2-build-s.exe` / `bowtie2-build-l.exe` with small/large index selection, multi-FASTA argument normalization, and parent-directory-only executable lookup | Replaces the upstream Python launcher so `python3` is not required for Windows builds; also supports release ZIPs where root cmd/exe files sit next to `scripts/` |
+| `../scripts/bowtie2-inspect.ps1` | Added a Windows PowerShell 5.1-compatible wrapper for `bowtie2-inspect-s.exe` / `bowtie2-inspect-l.exe` with automatic large-index selection and parent-directory-only executable lookup | Replaces the upstream Python launcher so `python3` is not required for Windows inspection; also supports release ZIPs where root cmd/exe files sit next to `scripts/` |
+| `../bowtie2.cmd`, `../bowtie2-build.cmd`, `../bowtie2-inspect.cmd` | Added thin `cmd.exe` launchers that call `powershell.exe -NoProfile -ExecutionPolicy Bypass -File` for the matching `.ps1` wrapper under `scripts/` | Lets users run `bowtie2.cmd`-style commands on a stock Windows installation with Windows PowerShell 5.1 while keeping `.ps1` files out of the root command namespace |
 
 The modified source locations include comments explaining why binary mode is
-forced for Windows output.
+forced for Windows output and why release build metadata is normalized.
 
 ## zstd support note
 

@@ -236,11 +236,15 @@ else ifeq (0,$(shell $(CXX) -E -fsanitize=undefined btypes.h > /dev/null 2>&1; e
 endif
 
 DEBUG_FLAGS    := -O0 -g3
-RELEASE_FLAGS  := -O3 -funroll-loops -g3
+RELEASE_FLAGS  := -O3 -funroll-loops
 NOASSERT_FLAGS := -DNDEBUG
 FILE_FLAGS     := -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 DEBUG_DEFS     = -DCOMPILER_OPTIONS="\"$(DEBUG_FLAGS) $(CXXFLAGS)\""
 RELEASE_DEFS   = -DCOMPILER_OPTIONS="\"$(RELEASE_FLAGS) $(CXXFLAGS)\""
+
+# WinNGS release builds must not embed the local PC name or locale-dependent date text.
+WINNGS_BUILD_HOST ?= WinNGS UCRT64 release build
+WINNGS_BUILD_TIME ?= $(shell LC_ALL=C date -u +%Y-%m-%dT%H:%M:%SZ)
 
 ifeq (1, $(ENABLE_V256))
   V256_DEBUG_DEFS     = -DCOMPILER_OPTIONS="\"$(DEBUG_FLAGS) $(CXXFLAGS) $(V256_FLAG)\""
@@ -337,8 +341,8 @@ both-sanitized: $(BOWTIE2_BIN_BOTH_LIST_SAN) ;
 
 DEFS := -fno-strict-aliasing \
   -DBOWTIE2_VERSION="\"`cat BOWTIE2_VERSION`\"" \
-  -DBUILD_HOST="\"$${HOSTNAME:-`hostname`}\"" \
-  -DBUILD_TIME="\"`date -u`\"" \
+  -DBUILD_HOST="\"$(WINNGS_BUILD_HOST)\"" \
+  -DBUILD_TIME="\"$(WINNGS_BUILD_TIME)\"" \
   -DCOMPILER_VERSION="\"`$(CXX) -v 2>&1 | tail -1`\"" \
   $(FILE_FLAGS) \
   $(PREF_DEF) \

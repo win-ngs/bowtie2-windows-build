@@ -22,9 +22,9 @@ The release ZIP includes Bowtie 2 executables and Windows wrapper scripts:
   bowtie2.cmd
   bowtie2-build.cmd
   bowtie2-inspect.cmd
-  bowtie2.ps1
-  bowtie2-build.ps1
-  bowtie2-inspect.ps1
+  scripts/bowtie2.ps1
+  scripts/bowtie2-build.ps1
+  scripts/bowtie2-inspect.ps1
 
 The tested UCRT64 build was linked with:
 

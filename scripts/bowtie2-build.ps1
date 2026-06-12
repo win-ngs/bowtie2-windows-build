@@ -1,12 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 $ScriptArgs = [string[]]@($args)
-$PatchSourceDir = Join-Path $PSScriptRoot 'bowtie2-2.5.5-80e1011-patch'
-$SourceDir = if (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'bowtie2-build-s.exe')) {
-    $PSScriptRoot
-} else {
-    $PatchSourceDir
-}
+# The scripts directory is one level below the release root; executables must stay in that parent directory.
+$SourceDir = Split-Path -Parent $PSScriptRoot
 
 function Write-Fail {
     param([string]$Message)
@@ -200,7 +196,7 @@ if ($largeIndex) {
 }
 
 if (-not (Test-Path -LiteralPath $buildExe)) {
-    Write-Fail "$(Split-Path $buildExe -Leaf) does not exist; build Bowtie 2 first."
+    Write-Fail "$(Split-Path $buildExe -Leaf) does not exist; keep the .exe files next to the scripts directory."
 }
 
 $nativeArgs = [string[]](@('--wrapper', 'basic-0') + $argv.ToArray())

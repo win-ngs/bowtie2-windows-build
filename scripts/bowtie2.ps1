@@ -1,12 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 $ScriptArgs = [string[]]@($args)
-$PatchSourceDir = Join-Path $PSScriptRoot 'bowtie2-2.5.5-80e1011-patch'
-$SourceDir = if (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'bowtie2-align-s.exe')) {
-    $PSScriptRoot
-} else {
-    $PatchSourceDir
-}
+# The scripts directory is one level below the release root; executables must stay in that parent directory.
+$SourceDir = Split-Path -Parent $PSScriptRoot
 
 function Write-Fail {
     param([string]$Message)
@@ -301,7 +297,7 @@ try {
 
         $buildExe = Join-Path $SourceDir 'bowtie2-build-s.exe'
         if (-not (Test-Path -LiteralPath $buildExe)) {
-            Write-Fail 'bowtie2-build-s.exe does not exist; build Bowtie 2 first.'
+            Write-Fail 'bowtie2-build-s.exe does not exist; keep the .exe files next to the scripts directory.'
         }
 
         $buildArgs = [string[]]@('--wrapper', 'basic-0', $refPath, $tempBase)
@@ -345,7 +341,7 @@ try {
     $alignName = if ($useLarge) { "bowtie2-align-l$suffix.exe" } else { "bowtie2-align-s$suffix.exe" }
     $alignExe = Join-Path $SourceDir $alignName
     if (-not (Test-Path -LiteralPath $alignExe)) {
-        Write-Fail "$alignName does not exist; build Bowtie 2 first."
+        Write-Fail "$alignName does not exist; keep the .exe files next to the scripts directory."
     }
 
     Write-Info $verbose "Using $(if ($useLarge) { 'large' } else { 'small' }) aligner: $alignName"
